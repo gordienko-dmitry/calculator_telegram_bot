@@ -4,6 +4,7 @@ import datetime
 
 from telegram import ReplyKeyboardMarkup
 import texts
+from calc import calculate
 
 
 class mode_of_bot(Enum):
@@ -14,6 +15,7 @@ class mode_of_bot(Enum):
     CALC_words = 4
     GORODA = 5
     PLANETS = 6
+    WORDCOUNT = 7
 
 
 menu_button = 'Меню'
@@ -25,7 +27,7 @@ base_keyboard = ReplyKeyboardMarkup([['Счетчик слов'], ['Кальку
 
 
 def get_answer_message(bot, text):
-    text_functrion = {'счетчик слов': wordcount, 'калькулятор': calculate,
+    text_functrion = {'счетчик слов': wordcount, 'калькулятор': calculate_mode,
             'города': goroda, 'информация о боте': about, 'отмена': cancel, 'планеты и созвездия': planets}
 
     if bot.mode != mode_of_bot.EMPTY and text.lower() != 'отмена':
@@ -52,12 +54,53 @@ def start():
     return texts.START_TEXT
 
 
-def wordcount():
-    pass
+def wordcount(bot,count=False,text=''):
+    if count:
+        text = text.replace('.',' ').replace(',',' ').replace('!',' ').replace('?', ' ').replace('   ',' ').replace('  ',' ').strip()
+        
+        if text == '':
+            answer_text = texts.EMPTY_STRING
+        else:
+            count_text = text.split(' ')
+            answer_text = texts.WORD_1.format(len(count_text))
+        bot.mode = mode_of_bot.EMPTY
+        return answer_text, base_keyboard
+    else:
+        bot.mode = mode_of_bot.WORDCOUNT
+        answer_text = texts.WORD_0
+        reply_keyboard = ReplyKeyboardMarkup([cancel_button], resize_keyboard=True, one_time_keyboard=True)
+        return answer_text, reply_keyboard
 
 
-def calculate():
-    pass
+def calculate_mode(bot,text=''):
+    if bot.mode == mode_of_bot.EMPTY:
+        bot.mode = mode_of_bot.CALC
+        answer_text = texts.CALC_1
+
+        buttons = [['Текстовый'], ['Кнопочный'], ['Словесный']]
+        buttons.append(cancel_button)
+        reply_keyboard = ReplyKeyboardMarkup(buttons, resize_keyboard=True, one_time_keyboard=True)
+        return answer_text, reply_keyboard
+
+    if bot.mode == mode_of_bot.CALC:
+        bot.mode = mode_of_bot(texts.CALC_TYPE.get(text.capitalize(), 1))
+        if bot.mode == mode_of_bot.CALC:
+            answer_text = 'Попробуйте еще раз'
+            answer_text, None
+        else:
+            answer_text = texts.CALC_TEXT_1
+            buttons = [cancel_button]
+            reply_keyboard = ReplyKeyboardMarkup(buttons, resize_keyboard=True, one_time_keyboard=True)
+
+            return answer_text, reply_keyboard
+    
+    if bot.mode == mode_of_bot.CALC_text:
+        result, without_error = calculate(text)
+        if without_error:
+            buttons = [cancel_button]
+            reply_keyboard = ReplyKeyboardMarkup(buttons, resize_keyboard=True, one_time_keyboard=True)
+
+            return [texts.CALC_TEXT_RESULT.format(result), texts.CALC_TEXT_2], reply_keyboard
 
 
 def goroda():
@@ -91,8 +134,10 @@ def get_name(user):
 def special_mode(bot, text):
     if bot.mode == mode_of_bot.PLANETS:
         return constellation(bot, text)
-    if bot.mode == mode_of_bot.CALC:
-        return shedule_dates(bot, text)
+    if bot.mode == mode_of_bot.WORDCOUNT:
+        return wordcount(bot, count=True,text=text)
+    if bot.mode in [mode_of_bot.CALC, mode_of_bot.CALC_text, mode_of_bot.CALC_buttons, mode_of_bot.CALC_words]:
+        return calculate_mode(bot, text)
 
 
 def constellation(bot, text):

@@ -1,5 +1,6 @@
 # bot modules
 from telegram.ext import Updater, MessageHandler, Filters
+from telegram import ParseMode
 import logging
 
 # my files
@@ -15,14 +16,22 @@ def command_message(bot, update):
     text = text.split(' ')[0]
 
     answer_text, keyboard = get_answer_command(bot, update.effective_user, text)
-    update.message.reply_text(answer_text, reply_markup=keyboard)
+    if type(answer_text) == list:
+        for text_answer in answer_text:
+            update.message.reply_text(text_answer, reply_markup=keyboard)
+    else:
+        update.message.reply_text(answer_text, reply_markup=keyboard)
 
 
 def text_message(bot, update):
     text = update.message.text.strip()
 
     answer_text, keyboard = get_answer_message(bot, text)
-    update.message.reply_text(answer_text, reply_markup=keyboard)
+    if type(answer_text) == list:
+        for text_answer in answer_text:
+            update.message.reply_text(text_answer, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN)
+    else:
+        update.message.reply_text(answer_text, reply_markup=keyboard)
 
 
 def main():
