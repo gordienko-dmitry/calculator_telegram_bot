@@ -2,20 +2,23 @@ def calculate(text):
     text = text.replace(' ', '').replace('-','+-').replace('/','*1/')
 
     try: 
-        count_bracket_open = text.count('(')
-        count_bracket_close = text.count(')')
-        if count_bracket_open != count_bracket_close:
-            raise Exception('Проверьте количество открывающий и закрывающих скобок')
-        if count_bracket_open == 0:
-            return precalc(text, '+'), True
-        return brackets(text), True
-    
-    except Exception as e:
-        return e.args[0], False
+        return prebrackets(text)
     except ValueError:
         return 'Ошибка в выражении', False
     except ZeroDivisionError:
         return 'Насколько я помню - на ноль делить до сих пор нельзя', False
+    except Exception as e:
+        return e.args[0], False
+
+
+def prebrackets(text):
+    count_bracket_open = text.count('(')
+    count_bracket_close = text.count(')')
+    if count_bracket_open != count_bracket_close:
+        raise Exception('Проверьте количество открывающий и закрывающих скобок')
+    if count_bracket_open == 0:
+        return precalc(text, '+'), True
+    return brackets(text), True
 
     
 def brackets(text, level=0, brackets_dict={}):
