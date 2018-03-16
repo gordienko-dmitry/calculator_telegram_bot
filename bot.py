@@ -8,7 +8,11 @@ from settings import TELEGRAM_API_TOKEN
 from commands_message import get_answer_command, get_answer_message, mode_of_bot 
 
 
-logging.basicConfig(format='%(name)s + %(levelname)s + %(message)s', level=logging.INFO, filename='bot.log')
+#logging.basicConfig(format='%(asctime)s + %(user)s + %(message)s', level=logging.INFO, filename='bot.log')
+
+
+#def info_log(text, user=''):
+#    logging.info(text, extra={'user':user})
 
 
 def command_message(bot, update):
